@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Job Fit & Resume Advisor — Chris Girvin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f1f5f9; min-height: 100vh; }
+  textarea { font-family: Arial, sans-serif; }
+  ::-webkit-scrollbar { width: 6px; } 
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+  @keyframes pulse { 0%,80%,100%{transform:scale(0.6);opacity:0.3} 40%{transform:scale(1);opacity:1} }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const { useState, useCallback } = React;
+
+const SYSTEM_PROMPT = `You are a career advisor and resume expert for Chris Girvin. Below is his EXACT current resume. Use this as the sole source of truth for all gap analysis and tailoring.
+
+HEADLINE: Manager, Reporting & Insights | Analytics & Performance Leader
+CONTACT: (682) 395-2074 | cgirvin72@outlook.com | linkedin.com/in/christophersgirvin | Dallas-Fort Worth, TX
+
+EXECUTIVE SUMMARY (current):
+Analytics and performance leader with 12+ years transforming complex data into clear visual stories that drive executive decisions across finance, technology, operations, and procurement. Known for building KPI governance frameworks, executive-facing dashboards, and reporting ecosystems that convert raw data into actionable insight — delivering ~$180M in cost optimization impact, 90% reduction in reporting latency, and 30% workforce optimization. A natural bridge between business stakeholders and data systems: fluent in the language of the C-suite and the logic of the data layer. Targeting Manager, Reporting & Insights and Analytics Manager roles in finance, technology, energy, retail, and operations-focused organizations.
+
+CORE COMPETENCIES: Executive Dashboard & Data Storytelling | KPI Governance & Performance Frameworks | Power BI / Tableau / Coupa Analytics | Financial & Operations Reporting | Data Visualization & Insight Design | Reporting Reliability & Data Governance | Cross-Functional Analytics Leadership | SQL / Data Modeling / Ad Hoc Analysis | Process Automation & Workflow Optimization
+
+ENTERPRISE IMPACT:
+- ~$180M cost optimization — financial variance dashboards enabling C-suite enterprise consolidation decisions
+- 90% faster reporting — dashboard refresh cut from 2.5 hours to 10 minutes
+- 30% staffing optimization — KPI scorecards across 13 production desks
+- 150+ stakeholders unified — standardized KPI definitions at Wells Fargo
+- 40% less manual reporting effort — dashboard automation and validation controls
+
+EXPERIENCE:
+[1] NorthMark Strategies | Analytics Lead | Jul 2024-Aug 2025 | Dallas TX (laid off, restructuring)
+B1: Cut reporting discrepancies by 40% — overhauled KPI logic and governance standards that had eroded executive trust in weekly performance reviews.
+B2: Unified workforce capacity, cost, and throughput into a single planning scorecard — reducing reactive leadership decisions and improving forecast alignment.
+B3: Formalized data lineage and reporting standards — shrinking clarification cycles and accelerating time-to-insight across Finance, Operations, and Engineering.
+B4: Coached junior analysts on dashboard design, governance discipline, and presenting data findings as executive-ready narratives.
+
+[2] Wells Fargo | Sr. Data Analyst - Enterprise Performance Analytics | Jan 2021-Apr 2024 | Dallas TX
+B1: Owned executive KPI dashboards in Power BI and Tableau for 150+ stakeholders — eliminating conflicting data narratives across Finance, Risk, and Operations.
+B2: ~$180M in cost optimization — built the financial variance models that powered enterprise vendor consolidation decisions at the C-suite level.
+B3: Zero audit escalations — governed reporting reconciliation standards in a regulated environment, strengthening C-suite confidence in published metrics.
+B4: Translated strategic priorities into unified dashboard views — aligning workforce, cost, and risk visibility for operational leadership in one place.
+
+[3] Aventiv Technologies | Sr. Reporting & Systems Analyst | Oct 2018-Jan 2021 | Carrollton TX
+B1: Eliminated 20+ fragmented legacy databases — consolidated into one governed data model that made dashboards reliable enough to trust.
+B2: 10-minute dashboard refresh, down from 2.5 hours — leadership started every day with current, accurate performance data.
+B3: ~40% fewer reporting inconsistencies — redesigned validation and quality controls that became the enterprise reporting standard.
+
+[4] Microsoft | Data Analyst - Global Sales & Forecasting (Contract) | Jan 2018-Jul 2018 | Dallas TX
+B1: ~25% improvement in forecast accuracy — standardized global sales funnel dashboards that eliminated regional quota reporting discrepancies.
+B2: Built pre-distribution validation checks on Salesforce data — catching discrepancies before they reached executive reports.
+
+[5] M-Files Inc. | Project Analyst - Performance & KPI Analytics | Nov 2014-Jan 2018 | Plano TX
+B1: Built the company's first KPI reporting framework from scratch — integrated sales, operational, and financial metrics into executive dashboards.
+B2: Designed Tableau and Excel performance dashboards with automated validation — giving senior leadership consistent, reliable weekly KPI visibility.
+B3: Established metric governance standards that prevented dashboard drift as the company scaled.
+
+TECHNICAL SKILLS:
+Visualization & BI: Power BI (DAX, Power Query), Tableau, Coupa Analytics, SSRS, Advanced Excel Dashboarding
+Data & Reporting: SQL (CTEs, Window Functions, Complex Joins), Data Modeling, Dimensional Modeling, Data Warehouse Architecture, SSIS, Azure SQL, Snowflake
+Automation & Excel: Python, VBA Macros, Power Query, Reporting Automation, INDEX/MATCH, Pivot Tables, Variance Analysis
+Methods: KPI Governance, Data Governance & Quality Assurance, Ad Hoc Analysis, Requirements Gathering, Financial Modeling, Cohort Analysis, Workforce Optimization, Statistical & Trend Analysis, Stakeholder Data Storytelling
+Integrations: Salesforce, multi-source data consolidation, CRM data integration
+
+EDUCATION: MBA Business Administration (University of Phoenix) | BS Organizational Management (Hope International University)
+
+BRAND CONTEXT:
+- NOT a fit: pure data engineering, ML/AI engineering, deep coding, advocacy roles
+- SPARKETYPE: Essentialist (creates order from chaos) + Maven shadow. Anti: Advocate (draining)
+- SALARY: Min $100K, target $110K-$135K | DFW, hybrid, or remote
+- TARGET INDUSTRIES: Finance/Fintech, Tech/SaaS, Energy/Utilities, Retail/CPG, Operations/Supply Chain
+
+Analyze the job description and return ONLY a valid JSON object — no markdown, no preamble:
+{
+  "jobTitle": "<title>",
+  "company": "<company or Not Listed>",
+  "fitScore": <1-10>,
+  "fitLabel": "<Strong Fit|Good Fit|Stretch Fit|Poor Fit>",
+  "applyRecommendation": "<Apply Now|Apply with Tailoring|Apply Cautiously|Skip>",
+  "oneLiner": "<one sentence fit summary>",
+  "salaryFlag": "<In Range|Below Target|Above Range|Not Listed>",
+  "energyFit": "<Energizing|Neutral|Draining>",
+  "essentialistFit": "<High|Medium|Low>",
+  "strengths": ["<3-5 specific strengths Chris brings>"],
+  "gaps": ["<specific gap or missing requirement>"],
+  "gapMitigation": ["<how to address each gap>"],
+  "keywordsMatched": ["<JD keywords already in resume>"],
+  "keywordsMissing": ["<JD keywords not in resume>"],
+  "energyNote": "<one sentence on energy alignment>",
+  "essentialistNote": "<one sentence on Essentialist fit>",
+  "tailoredSummary": "<rewritten 3-sentence summary using JD keywords, same voice, no fabrication>",
+  "summaryNotes": "<2 sentences coaching>",
+  "bulletUpdates": [{"role":"<role>","company":"<co>","bulletIndex":<n>,"original":"<first 70 chars>","updated":"<rewritten or KEEP>","reason":"<one sentence>"}],
+  "coverLetterHook": "<one specific human opening sentence>",
+  "filenameRecommendation": "<Girvin_Company_Role.docx>"
+}
+Limit bulletUpdates to 4-5 most impactful. Never fabricate skills or experience.`;
+
+const C = {
+  navy:"#1F3864",blue:"#2E75B6",white:"#FFFFFF",
+  slate50:"#f8fafc",slate100:"#f1f5f9",slate200:"#e2e8f0",
+  slate400:"#94a3b8",slate600:"#475569",slate800:"#1e293b",
+  green600:"#16a34a",green100:"#dcfce7",
+  blue50:"#eff6ff",blue100:"#dbeafe",blue600:"#2563eb",
+  amber50:"#fffbeb",amber100:"#fef3c7",amber600:"#d97706",
+  red100:"#fee2e2",red600:"#dc2626",
+  purple600:"#7c3aed",
+};
+
+const FIT = {
+  "Strong Fit":  {bg:C.green100, border:C.green600, badge:C.green600},
+  "Good Fit":    {bg:C.blue100,  border:C.blue600,  badge:C.blue600},
+  "Stretch Fit": {bg:C.amber100, border:C.amber600, badge:C.amber600},
+  "Poor Fit":    {bg:C.red100,   border:C.red600,   badge:C.red600},
+};
+const REC = {
+  "Apply Now":"#16a34a","Apply with Tailoring":"#2563eb",
+  "Apply Cautiously":"#d97706","Skip":"#dc2626"
+};
+const STEPS = ["Reading job description","Scoring fit","Checking gaps","Tailoring summary","Updating bullets"];
+
+function ScoreRing({score}) {
+  const r=40,cx=50,cy=50,circ=2*Math.PI*r,dash=(score/10)*circ;
+  const color=score>=8?"#22c55e":score>=6?"#3b82f6":score>=4?"#f59e0b":"#ef4444";
+  return React.createElement("svg",{width:100,height:100,viewBox:"0 0 100 100"},
+    React.createElement("circle",{cx,cy,r,fill:"none",stroke:C.slate200,strokeWidth:8}),
+    React.createElement("circle",{cx,cy,r,fill:"none",stroke:color,strokeWidth:8,
+      strokeDasharray:`${dash} ${circ}`,strokeLinecap:"round",transform:"rotate(-90 50 50)"}),
+    React.createElement("text",{x:cx,y:cy-3,textAnchor:"middle",fill:color,
+      fontSize:22,fontWeight:700,fontFamily:"Georgia,serif"},score),
+    React.createElement("text",{x:cx,y:cy+12,textAnchor:"middle",fill:C.slate400,
+      fontSize:9,fontFamily:"Arial,sans-serif"},"/10")
+  );
+}
+
+function Chip({text,bg,color}) {
+  return React.createElement("span",{style:{display:"inline-block",background:bg,color,
+    fontSize:11,fontWeight:700,padding:"2px 9px",borderRadius:20,margin:2,
+    letterSpacing:"0.02em"}},text);
+}
+
+function Label({children,color=C.navy}) {
+  return React.createElement("div",{style:{fontSize:10,fontWeight:800,letterSpacing:"0.13em",
+    textTransform:"uppercase",color,borderBottom:`2px solid ${color}`,
+    paddingBottom:4,marginBottom:10}},children);
+}
+
+function Panel({children,style={}}) {
+  return React.createElement("div",{style:{background:C.white,borderRadius:12,padding:20,
+    boxShadow:"0 2px 12px rgba(31,56,100,0.09)",marginBottom:14,...style}},children);
+}
+
+function StatPill({label,value}) {
+  return React.createElement("div",{style:{background:C.white,borderRadius:10,padding:"8px 14px",
+    textAlign:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.08)",minWidth:76}},
+    React.createElement("div",{style:{fontSize:9,fontWeight:800,color:C.slate400,
+      letterSpacing:"0.1em",textTransform:"uppercase"}},label),
+    React.createElement("div",{style:{fontSize:12,fontWeight:700,color:C.navy,marginTop:2}},value)
+  );
+}
+
+function GapRow({gap,mitigation}) {
+  return React.createElement("div",{style:{border:`1px solid ${C.slate200}`,borderRadius:10,
+    marginBottom:10,overflow:"hidden"}},
+    React.createElement("div",{style:{background:C.red100,padding:"8px 12px",display:"flex",
+      gap:8,fontSize:13,color:"#991b1b",fontWeight:600}},
+      React.createElement("span",null,"⚠"),React.createElement("span",null,gap)),
+    mitigation && React.createElement("div",{style:{padding:"8px 12px",display:"flex",gap:8,
+      fontSize:13,color:C.slate800,background:C.white}},
+      React.createElement("span",{style:{color:C.green600,fontWeight:700,flexShrink:0}},"→"),
+      React.createElement("span",null,mitigation))
+  );
+}
+
+function BulletRow({item}) {
+  const keep = item.updated?.toUpperCase().startsWith("KEEP");
+  return React.createElement("div",{style:{border:`1.5px solid ${keep?C.slate200:C.blue100}`,
+    borderRadius:10,marginBottom:10,overflow:"hidden",background:keep?C.slate50:C.blue50}},
+    React.createElement("div",{style:{padding:"8px 14px",display:"flex",gap:8,alignItems:"center",
+      borderBottom:`1px solid ${keep?C.slate200:C.blue100}`}},
+      React.createElement("span",{style:{background:keep?C.slate200:C.navy,
+        color:keep?C.slate600:C.white,fontSize:10,fontWeight:800,padding:"2px 9px",
+        borderRadius:20,letterSpacing:"0.05em",flexShrink:0}},keep?"✓ KEEP":"✎ UPDATE"),
+      React.createElement("span",{style:{fontSize:12,fontWeight:700,color:C.navy}},
+        `${item.role} · Bullet ${item.bulletIndex}`)
+    ),
+    !keep && React.createElement("div",{style:{padding:"10px 14px 4px"}},
+      React.createElement("div",{style:{fontSize:10,fontWeight:700,color:C.slate400,
+        textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:3}},"Original"),
+      React.createElement("div",{style:{fontSize:12,color:C.slate600,fontStyle:"italic",
+        lineHeight:1.6,marginBottom:8}},`${item.original}…`),
+      React.createElement("div",{style:{fontSize:10,fontWeight:700,color:C.green600,
+        textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:3}},"Updated"),
+      React.createElement("div",{style:{fontSize:13,color:C.navy,fontWeight:500,
+        lineHeight:1.6,marginBottom:6}},item.updated)
+    ),
+    React.createElement("div",{style:{padding:"6px 14px 10px",display:"flex",gap:6}},
+      React.createElement("span",{style:{color:C.blue,fontWeight:700,flexShrink:0}},"→"),
+      React.createElement("span",{style:{fontSize:12,color:C.slate600,fontStyle:"italic",
+        lineHeight:1.5}},item.reason)
+    )
+  );
+}
+
+function CopyBtn({text,id,label,copied,onCopy}) {
+  const done = copied===id;
+  return React.createElement("button",{
+    onClick:()=>onCopy(text,id),
+    style:{fontSize:11,fontWeight:700,color:done?C.green600:C.blue,
+      background:done?C.green100:C.blue100,border:"none",borderRadius:6,
+      padding:"3px 10px",cursor:"pointer",transition:"all 0.2s"}},
+    done?"✓ Copied!":label);
+}
+
+function Loader({step}) {
+  return React.createElement("div",{style:{textAlign:"center",padding:"52px 24px"}},
+    React.createElement("div",{style:{display:"inline-flex",gap:8,marginBottom:22}},
+      [0,1,2].map(i=>React.createElement("div",{key:i,style:{width:11,height:11,
+        borderRadius:"50%",background:C.blue,
+        animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite`}}))
+    ),
+    React.createElement("div",{style:{fontSize:15,fontWeight:600,color:C.blue,marginBottom:6}},
+      `${STEPS[step]||"Analyzing"}…`),
+    React.createElement("div",{style:{fontSize:12,color:C.slate400}},
+      "Building your complete application package")
+  );
+}
+
+function App() {
+  const [jd,setJd] = useState("");
+  const [loading,setLoading] = useState(false);
+  const [step,setStep] = useState(0);
+  const [result,setResult] = useState(null);
+  const [error,setError] = useState("");
+  const [tab,setTab] = useState(0);
+  const [copied,setCopied] = useState("");
+
+  const copyText = (text,id) => {
+    navigator.clipboard.writeText(text);
+    setCopied(id);
+    setTimeout(()=>setCopied(""),2200);
+  };
+
+  const analyze = useCallback(async()=>{
+    if(jd.trim().length<80){setError("Please paste a full job description.");return;}
+    setError("");setLoading(true);setResult(null);setStep(0);
+    const iv=setInterval(()=>setStep(s=>Math.min(s+1,STEPS.length-1)),950);
+    try {
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:2000,
+          system:SYSTEM_PROMPT,
+          messages:[{role:"user",content:`Analyze this job description for Chris:\n\n${jd.slice(0,2500)}`}]
+        })
+      });
+      const data=await res.json();
+      if(data.error) throw new Error(data.error.message);
+      const raw=data.content?.map(b=>b.text||"").join("")||"";
+      const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
+      setResult(parsed);setTab(0);
+    } catch(e){
+      setError(`Error: ${e.message||"Please try again."}`);
+    } finally {
+      clearInterval(iv);setLoading(false);
+    }
+  },[jd]);
+
+  const fitCfg=result?FIT[result.fitLabel]||FIT["Good Fit"]:null;
+  const recColor=result?REC[result.applyRecommendation]||REC["Apply with Tailoring"]:null;
+
+  const s=(styles)=>styles; // passthrough for style objects
+
+  return React.createElement("div",{style:{minHeight:"100vh",background:C.slate100}},
+
+    // Header
+    React.createElement("div",{style:{background:`linear-gradient(135deg,${C.navy} 0%,${C.blue} 100%)`,
+      padding:"24px 20px 28px",textAlign:"center"}},
+      React.createElement("div",{style:{color:"#93c5fd",fontSize:10,fontWeight:800,
+        letterSpacing:"0.16em",marginBottom:6}},"CHRIS GIRVIN · CAREER TOOLS"),
+      React.createElement("h1",{style:{color:C.white,fontSize:24,fontWeight:700,margin:"0 0 6px",
+        fontFamily:"Georgia,serif",letterSpacing:"-0.02em"}},"Job Fit & Resume Advisor"),
+      React.createElement("p",{style:{color:"#bfdbfe",fontSize:13,margin:0,lineHeight:1.6,
+        maxWidth:460,marginLeft:"auto",marginRight:"auto"}},
+        "Paste a job description — get your fit score, gap analysis, tailored summary, and bullet updates in one shot.")
+    ),
+
+    React.createElement("div",{style:{maxWidth:800,margin:"0 auto",padding:"20px 16px"}},
+
+      // Input
+      React.createElement(Panel,null,
+        React.createElement(Label,null,"Paste Job Description"),
+        React.createElement("textarea",{value:jd,onChange:e=>setJd(e.target.value),
+          placeholder:"Paste the full job description here — title, responsibilities, requirements, salary if listed…",
+          style:{width:"100%",minHeight:160,border:`2px solid ${C.slate200}`,
+            borderRadius:10,padding:12,fontSize:13,color:C.slate800,
+            resize:"vertical",outline:"none",lineHeight:1.6}}),
+        error && React.createElement("div",{style:{color:C.red600,fontSize:12,
+          marginTop:6,fontWeight:600}},error),
+        React.createElement("div",{style:{marginTop:12,display:"flex",gap:10,flexWrap:"wrap"}},
+          React.createElement("button",{onClick:analyze,disabled:loading,
+            style:{background:loading?"#93c5fd":C.navy,color:C.white,border:"none",
+              borderRadius:10,padding:"11px 26px",fontSize:14,fontWeight:700,
+              cursor:loading?"not-allowed":"pointer",letterSpacing:"0.03em",
+              boxShadow:loading?"none":"0 4px 14px rgba(31,56,100,0.3)"}},
+            loading?"Analyzing…":"Analyze & Tailor →"),
+          result && React.createElement("button",{onClick:()=>{setResult(null);setJd("");},
+            style:{background:"transparent",color:C.slate600,
+              border:`1.5px solid ${C.slate200}`,borderRadius:10,
+              padding:"11px 18px",fontSize:13,fontWeight:600,cursor:"pointer"}},
+            "New Search")
+        )
+      ),
+
+      // Loading
+      loading && React.createElement(Panel,null,React.createElement(Loader,{step})),
+
+      // Results
+      result && fitCfg && React.createElement(React.Fragment,null,
+
+        // Score banner
+        React.createElement("div",{style:{background:fitCfg.bg,border:`2.5px solid ${fitCfg.border}`,
+          borderRadius:14,padding:"18px 20px",marginBottom:14,
+          display:"flex",alignItems:"center",gap:18,flexWrap:"wrap"}},
+          React.createElement(ScoreRing,{score:result.fitScore}),
+          React.createElement("div",{style:{flex:1,minWidth:180}},
+            React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:6}},
+              React.createElement("span",{style:{background:fitCfg.badge,color:C.white,fontSize:12,
+                fontWeight:700,padding:"3px 11px",borderRadius:20}},result.fitLabel),
+              React.createElement("span",{style:{background:recColor,color:C.white,fontSize:12,
+                fontWeight:700,padding:"3px 11px",borderRadius:20}},result.applyRecommendation)
+            ),
+            React.createElement("div",{style:{fontSize:14,fontWeight:600,color:C.navy,
+              fontFamily:"Georgia,serif",lineHeight:1.5}},result.oneLiner),
+            React.createElement("div",{style:{marginTop:6,fontSize:11,color:C.slate600,
+              fontFamily:"'Courier New',monospace"}},`Save as: ${result.filenameRecommendation}`)
+          ),
+          React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+            React.createElement(StatPill,{label:"Salary",value:result.salaryFlag}),
+            React.createElement(StatPill,{label:"Energy",value:result.energyFit}),
+            React.createElement(StatPill,{label:"Essentialist",value:result.essentialistFit})
+          )
+        ),
+
+        // Tabs
+        React.createElement("div",{style:{display:"flex",gap:4,marginBottom:14}},
+          ["Fit Analysis","Resume Tailoring"].map((t,i)=>
+            React.createElement("button",{key:i,onClick:()=>setTab(i),
+              style:{padding:"9px 20px",borderRadius:8,fontSize:13,fontWeight:700,
+                cursor:"pointer",border:"none",transition:"all 0.2s",
+                background:tab===i?C.navy:C.white,color:tab===i?C.white:C.slate600,
+                boxShadow:tab===i?"0 2px 10px rgba(31,56,100,0.25)":"none"}},t)
+          )
+        ),
+
+        // Tab 0: Fit Analysis
+        tab===0 && React.createElement(React.Fragment,null,
+          React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}},
+            React.createElement(Panel,null,
+              React.createElement(Label,{color:C.green600},"Your Strengths"),
+              React.createElement("ul",{style:{margin:0,padding:0,listStyle:"none"}},
+                result.strengths?.map((s,i)=>React.createElement("li",{key:i,
+                  style:{display:"flex",gap:8,marginBottom:7,fontSize:13,
+                    color:C.slate800,lineHeight:1.5}},
+                  React.createElement("span",{style:{color:C.green600,fontWeight:700,flexShrink:0}},"✦"),
+                  React.createElement("span",null,s)))
+              )
+            ),
+            React.createElement(Panel,null,
+              React.createElement(Label,{color:C.blue600},"Keywords Matched"),
+              React.createElement("div",{style:{marginBottom:14}},
+                result.keywordsMatched?.map((k,i)=>React.createElement(Chip,{key:i,text:k,bg:C.blue100,color:C.blue600}))),
+              result.keywordsMissing?.length>0 && React.createElement(React.Fragment,null,
+                React.createElement(Label,{color:C.red600},"Keywords to Add"),
+                React.createElement("div",null,
+                  result.keywordsMissing?.map((k,i)=>React.createElement(Chip,{key:i,text:k,bg:C.red100,color:C.red600})))
+              )
+            )
+          ),
+          result.gaps?.length>0 && React.createElement(Panel,null,
+            React.createElement(Label,{color:C.red600},"Gaps & How to Address Them"),
+            result.gaps.map((g,i)=>React.createElement(GapRow,{key:i,gap:g,mitigation:result.gapMitigation?.[i]}))
+          ),
+          React.createElement(Panel,null,
+            React.createElement(Label,{color:C.purple600},"Sparketype Alignment"),
+            React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}},
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontSize:10,fontWeight:700,color:C.slate400,
+                  textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}},"Energy Fit"),
+                React.createElement("div",{style:{fontSize:13,color:C.slate800,lineHeight:1.5}},result.energyNote)
+              ),
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontSize:10,fontWeight:700,color:C.slate400,
+                  textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}},"Essentialist Fit"),
+                React.createElement("div",{style:{fontSize:13,color:C.slate800,lineHeight:1.5}},result.essentialistNote)
+              )
+            )
+          )
+        ),
+
+        // Tab 1: Resume Tailoring
+        tab===1 && React.createElement(React.Fragment,null,
+          React.createElement(Panel,null,
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",
+              alignItems:"center",marginBottom:10}},
+              React.createElement(Label,{color:C.navy},"Tailored Summary — Replace Your Current Summary"),
+              React.createElement(CopyBtn,{text:result.tailoredSummary,id:"summary",
+                label:"Copy",copied,onCopy:copyText})
+            ),
+            React.createElement("div",{style:{background:C.blue50,border:`1.5px solid ${C.blue100}`,
+              borderRadius:10,padding:16,fontSize:14,color:C.navy,lineHeight:1.8,
+              fontFamily:"Georgia,serif",fontStyle:"italic",marginBottom:12}},result.tailoredSummary),
+            React.createElement("div",{style:{background:C.amber50,border:`1px solid ${C.amber100}`,
+              borderRadius:8,padding:"11px 14px"}},
+              React.createElement("div",{style:{fontSize:10,fontWeight:800,color:"#92400e",
+                textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}},"Coach's Note"),
+              React.createElement("div",{style:{fontSize:12,color:"#78350f",lineHeight:1.6}},result.summaryNotes)
+            )
+          ),
+          result.keywordsMissing?.length>0 && React.createElement(Panel,null,
+            React.createElement(Label,{color:C.blue600},"Keywords to Weave into Bullets"),
+            React.createElement("div",{style:{marginBottom:8}},
+              result.keywordsMissing?.map((k,i)=>React.createElement(Chip,{key:i,text:k,bg:C.amber100,color:C.amber600}))),
+            React.createElement("div",{style:{fontSize:12,color:C.slate600,fontStyle:"italic",lineHeight:1.5}},
+              "Add these to relevant bullets where accurate — prioritize roles most relevant to this JD.")
+          ),
+          React.createElement(Panel,null,
+            React.createElement(Label,{color:C.navy},"Bullet Updates — Role by Role"),
+            React.createElement("div",{style:{fontSize:12,color:C.slate400,fontStyle:"italic",marginBottom:14,lineHeight:1.5}},
+              "Only highest-impact updates shown. KEEP = already strong for this role."),
+            result.bulletUpdates?.map((item,i)=>React.createElement(BulletRow,{key:i,item}))
+          ),
+          React.createElement(Panel,{style:{background:`linear-gradient(135deg,${C.blue50},${C.slate50})`}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",
+              alignItems:"center",marginBottom:10}},
+              React.createElement(Label,{color:C.navy},"Cover Letter Opening Line"),
+              React.createElement(CopyBtn,{text:result.coverLetterHook,id:"hook",label:"Copy",copied,onCopy:copyText})
+            ),
+            React.createElement("div",{style:{fontSize:15,color:C.navy,lineHeight:1.8,
+              fontFamily:"Georgia,serif",fontStyle:"italic"}},`"${result.coverLetterHook}"`),
+            React.createElement("div",{style:{marginTop:10,fontSize:11,color:C.slate400,lineHeight:1.5}},
+              "Use this as your first sentence. Follow with the tailored summary above, then one specific reason you're drawn to this company.")
+          )
+        )
+      )
+    )
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
